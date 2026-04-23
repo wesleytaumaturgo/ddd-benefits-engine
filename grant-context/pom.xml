@@ -65,6 +65,13 @@
       <artifactId>postgresql</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Module-local ArchUnit rule (GRANT-12). Version inherited from root <dependencyManagement>. -->
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
