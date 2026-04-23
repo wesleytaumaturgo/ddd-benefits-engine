@@ -25,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 /**
@@ -77,7 +78,7 @@ class CreateGrantUseCaseTest {
             .isInstanceOf(DuplicateActiveGrantException.class);
 
         verify(repository, never()).save(any());
-        verify(events, never()).publishEvent(any());
+        verify(events, never()).publishEvent(any(Object.class));
     }
 
     @Test
@@ -90,7 +91,7 @@ class CreateGrantUseCaseTest {
         useCase.execute(cmd);
 
         inOrder.verify(repository).save(any());
-        inOrder.verify(events, atLeastOnce()).publishEvent(any());
+        inOrder.verify(events, atLeastOnce()).publishEvent(any(Object.class));
     }
 
     @Test
@@ -100,6 +101,6 @@ class CreateGrantUseCaseTest {
 
         useCase.execute(cmd);
 
-        verify(events, atLeastOnce()).publishEvent(any());
+        verify(events, atLeastOnce()).publishEvent(any(Object.class));
     }
 }

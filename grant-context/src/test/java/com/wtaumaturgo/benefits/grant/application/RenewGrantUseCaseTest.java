@@ -60,7 +60,7 @@ class RenewGrantUseCaseTest {
             .isInstanceOf(GrantNotFoundException.class);
 
         verify(repository, never()).save(any());
-        verify(events, never()).publishEvent(any());
+        verify(events, never()).publishEvent(any(Object.class));
     }
 
     @Test
@@ -76,6 +76,6 @@ class RenewGrantUseCaseTest {
         useCase.execute(new RenewGrantCommand(id, newValidity));
 
         inOrder.verify(repository).save(grant);
-        inOrder.verify(events, atLeastOnce()).publishEvent(any());
+        inOrder.verify(events, atLeastOnce()).publishEvent(any(Object.class));
     }
 }

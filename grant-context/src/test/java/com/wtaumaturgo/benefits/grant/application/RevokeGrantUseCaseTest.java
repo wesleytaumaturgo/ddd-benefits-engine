@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+
 @ExtendWith(MockitoExtension.class)
 class RevokeGrantUseCaseTest {
 
@@ -59,7 +60,7 @@ class RevokeGrantUseCaseTest {
             .isInstanceOf(GrantNotFoundException.class);
 
         verify(repository, never()).save(any());
-        verify(events, never()).publishEvent(any());
+        verify(events, never()).publishEvent(any(Object.class));
     }
 
     @Test
@@ -74,6 +75,6 @@ class RevokeGrantUseCaseTest {
         useCase.execute(new RevokeGrantCommand(id));
 
         inOrder.verify(repository).save(grant);
-        inOrder.verify(events, atLeastOnce()).publishEvent(any());
+        inOrder.verify(events, atLeastOnce()).publishEvent(any(Object.class));
     }
 }
