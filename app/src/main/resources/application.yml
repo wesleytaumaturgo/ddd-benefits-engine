@@ -6,6 +6,10 @@ spring:
     virtual:
       enabled: true  # FUND-09: Java 21 Virtual Threads
 
+  mvc:
+    problemdetails:
+      enabled: true  # RFC 7807 — Phase 2 D-05/D-06; enables Spring Boot 3.3 auto-handling of framework exceptions
+
   datasource:
     url: jdbc:postgresql://localhost:5434/benefits?stringtype=unspecified  # FUND-12: stringtype=unspecified; port 5434 avoids conflict with other local Postgres projects (D-09)
     username: benefits
