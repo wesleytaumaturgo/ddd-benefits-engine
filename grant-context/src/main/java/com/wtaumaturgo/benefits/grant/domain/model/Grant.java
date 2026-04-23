@@ -130,11 +130,11 @@ public final class Grant implements AggregateRoot<GrantId> {
         return snapshot;
     }
 
-    // Package-private accessors for the JPA mapper (grant-context.infrastructure.persistence).
-    UUID beneficiaryId() { return beneficiaryId; }
-    BenefitPlan plan() { return plan; }
-    Money amount() { return amount; }
-    Period validity() { return validity; }
-    Cycle cycle() { return cycle; }
-    GrantStatus status() { return status; }
+    // Public accessors for the JPA mapper (grant-context.infrastructure.persistence) and for REST DTO mapping.
+    public UUID beneficiaryId() { return beneficiaryId; }
+    public BenefitPlan plan() { return plan; }
+    public Money amount() { return amount; }
+    public Period validity() { return validity; }
+    public Cycle cycle() { return cycle; }
+    public GrantStatus status() { return status; }
 }
