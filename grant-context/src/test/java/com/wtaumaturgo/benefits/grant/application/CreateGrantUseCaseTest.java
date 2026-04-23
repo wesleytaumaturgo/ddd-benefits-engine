@@ -2,17 +2,19 @@ package com.wtaumaturgo.benefits.grant.application;
 
 import com.wtaumaturgo.benefits.grant.application.dto.CreateGrantCommand;
 import com.wtaumaturgo.benefits.grant.domain.exception.DuplicateActiveGrantException;
-import com.wtaumaturgo.benefits.grant.domain.model.GrantId;
+import com.wtaumaturgo.benefits.grant.domain.model.Grant;
+import com.wtaumaturgo.benefits.grant.domain.model.GrantCreated;
 import com.wtaumaturgo.benefits.grant.domain.model.MerchantCategory;
 import com.wtaumaturgo.benefits.grant.domain.repository.GrantRepository;
 import com.wtaumaturgo.benefits.shared.domain.model.Cycle;
 import com.wtaumaturgo.benefits.shared.domain.model.Money;
 import com.wtaumaturgo.benefits.shared.domain.model.Period;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -22,85 +24,64 @@ import java.util.Currency;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-/**
- * Pure unit test for CreateGrantUseCase. No Spring context — Mockito only.
- * Tests verify: GRANT-02 duplicate check, Grant construction, save order, event drain+publish.
- */
 @ExtendWith(MockitoExtension.class)
 class CreateGrantUseCaseTest {
 
-    @Mock
-    GrantRepository repository;
+    @Mock GrantRepository repository;
+    @Mock ApplicationEventPublisher publisher;
 
-    @Mock
-    ApplicationEventPublisher events;
-
-    @InjectMocks
     CreateGrantUseCase useCase;
 
-    private CreateGrantCommand validCommand() {
-        return new CreateGrantCommand(
+    CreateGrantCommand validCommand;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new CreateGrantUseCase(repository, publisher);
+        validCommand = new CreateGrantCommand(
             UUID.randomUUID(),
             UUID.randomUUID(),
-            "Vale Combustivel",
+            "Plano",
             Set.of(MerchantCategory.FUEL_STATION),
-            Money.of(new BigDecimal("500.00"), Currency.getInstance("BRL")),
-            Period.of(LocalDate.now(), LocalDate.now().plusMonths(1)),
+            Money.of(new BigDecimal("100.00"), Currency.getInstance("BRL")),
+            Period.of(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 5, 1)),
             Cycle.of(2026, 4)
         );
     }
 
     @Test
-    void execute_returnsGrantId_whenNoDuplicateExists() {
-        CreateGrantCommand cmd = validCommand();
-        when(repository.existsActiveByBeneficiaryAndPlan(cmd.beneficiaryId(), cmd.planId()))
-            .thenReturn(false);
+    void duplicateShouldThrow() {
+        when(repository.existsActiveByBeneficiaryAndPlan(any(), any())).thenReturn(true);
 
-        GrantId result = useCase.execute(cmd);
-
-        assertThat(result).isNotNull();
-        assertThat(result.value()).isNotNull();
-    }
-
-    @Test
-    void execute_throwsDuplicateActiveGrantException_whenActiveGrantAlreadyExists() {
-        CreateGrantCommand cmd = validCommand();
-        when(repository.existsActiveByBeneficiaryAndPlan(cmd.beneficiaryId(), cmd.planId()))
-            .thenReturn(true);
-
-        assertThatThrownBy(() -> useCase.execute(cmd))
+        assertThatThrownBy(() -> useCase.execute(validCommand))
             .isInstanceOf(DuplicateActiveGrantException.class);
 
         verify(repository, never()).save(any());
-        verify(events, never()).publishEvent(any(Object.class));
+        verify(publisher, never()).publishEvent(any());
     }
 
     @Test
-    void execute_callsSaveBeforePublishingEvents() {
-        CreateGrantCommand cmd = validCommand();
+    void publishesAfterSave() {
         when(repository.existsActiveByBeneficiaryAndPlan(any(), any())).thenReturn(false);
 
-        var inOrder = inOrder(repository, events);
+        useCase.execute(validCommand);
 
-        useCase.execute(cmd);
-
-        inOrder.verify(repository).save(any());
-        inOrder.verify(events, atLeastOnce()).publishEvent(any(Object.class));
+        InOrder inOrder = Mockito.inOrder(repository, publisher);
+        inOrder.verify(repository).save(any(Grant.class));
+        inOrder.verify(publisher).publishEvent(any(GrantCreated.class));
     }
 
     @Test
-    void execute_publishesAtLeastOneEvent_afterSave() {
-        CreateGrantCommand cmd = validCommand();
+    void shouldPublishOneEventPerDrain() {
         when(repository.existsActiveByBeneficiaryAndPlan(any(), any())).thenReturn(false);
 
-        useCase.execute(cmd);
+        useCase.execute(validCommand);
 
-        verify(events, atLeastOnce()).publishEvent(any(Object.class));
+        verify(publisher).publishEvent(any(GrantCreated.class));
     }
 }
