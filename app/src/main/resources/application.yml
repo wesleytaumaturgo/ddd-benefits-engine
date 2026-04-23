@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: ddd-benefits-engine
+
+  threads:
+    virtual:
+      enabled: true  # FUND-09: Java 21 Virtual Threads
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/benefits?stringtype=unspecified  # FUND-12: stringtype=unspecified; port 5434 avoids conflict with other local Postgres projects (D-09)
+    username: benefits
+    password: benefits
+    hikari:
+      maximum-pool-size: 50  # FUND-09: required with Virtual Threads (default 10 causes saturation)
+
+  jpa:
+    open-in-view: false  # Mandatory per CLAUDE.md — never true
+    hibernate:
+      ddl-auto: validate  # Flyway owns schema; Hibernate only validates
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC  # FUND-12: UTC for all TIMESTAMPTZ columns
+
+  flyway:
+    locations:
+      - classpath:db/migration/grant    # FUND-06: multi-location Flyway
+      - classpath:db/migration/wallet
+      - classpath:db/migration/redemption
+    enabled: true
+
+  jackson:
+    time-zone: UTC  # FUND-12: Jackson serializes Instant in UTC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info  # FUND-11: only health and info exposed; NEVER env, beans, mappings
+  endpoint:
+    health:
+      show-details: never

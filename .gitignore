@@ -1,0 +1,46 @@
+# ─── Java / Maven ──────────────────────────────────────
+target/
+build/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ─── IDE ───────────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+bin/
+out/
+
+# ─── OS ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ──────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Env / Secrets ─────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ─── Temp ──────────────────────────────────────────────
+*.tmp
+*.swp
+*.bak
+*~
